@@ -81,3 +81,6 @@ typings/
 
 ## Source maps
 *.map
+
+## Dist
+dist/

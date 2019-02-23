@@ -123,3 +123,19 @@ export function merge<
 
   return { matrix: output, merged: true };
 }
+
+export function rotateClockwise<T, W extends number, H extends number>(
+  m: Matrix<T, W, H>,
+): Matrix<T, H, W> {
+  return create<T, H, W>(m.height, m.width, (_, { x, y }) => {
+    return m.matrix[m.height - x - 1][y];
+  });
+}
+
+export function rotateCounterClockwise<T, W extends number, H extends number>(
+  m: Matrix<T, W, H>,
+): Matrix<T, H, W> {
+  return create<T, H, W>(m.height, m.width, (_, { x, y }) => {
+    return m.matrix[x][m.width - y - 1];
+  });
+}
