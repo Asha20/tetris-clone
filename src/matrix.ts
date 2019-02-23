@@ -1,7 +1,7 @@
 type Tuple<T, L extends number> = [...T[]] & { length: L };
 type _Matrix<T, W extends number, H extends number> = Tuple<Tuple<T, W>, H>;
 
-interface Vector {
+export interface Vector {
   x: number;
   y: number;
 }
