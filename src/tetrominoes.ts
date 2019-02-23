@@ -1,11 +1,5 @@
 import * as M from "./matrix.js";
 
-interface RenderOptions {
-  ctx: CanvasRenderingContext2D;
-  pos: M.Vector;
-  tileSize: number;
-}
-
 type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
 
 export interface Tetromino<W extends number, H extends number> {
@@ -16,7 +10,7 @@ export interface Tetromino<W extends number, H extends number> {
     NumMatrix<H, W>
   ];
   currentState: NumMatrix<W, H> | NumMatrix<H, W>;
-  render: (options: RenderOptions) => void;
+  color: string;
 }
 
 function tetromino<W extends number, H extends number>(
@@ -31,12 +25,7 @@ function tetromino<W extends number, H extends number>(
   return {
     rotations: [matrix1, matrix2, matrix3, matrix4],
     currentState: matrix1,
-    render: ({ ctx, pos, tileSize }) => {
-      const oldStyle = ctx.fillStyle;
-      ctx.fillStyle = color;
-      ctx.fillRect(pos.x * tileSize, pos.y * tileSize, tileSize, tileSize);
-      ctx.fillStyle = oldStyle;
-    },
+    color,
   };
 }
 
