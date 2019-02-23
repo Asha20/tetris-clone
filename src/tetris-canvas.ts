@@ -1,5 +1,7 @@
-import { RenderOptions } from "./tetris.js";
+import { RenderOptions, FallingTetromino } from "./tetris.js";
 import GameCanvas from "./GameCanvas.js";
+import { Tetromino } from "./tetrominoes.js";
+import { forEach } from "./matrix.js";
 
 type Context = CanvasRenderingContext2D;
 
@@ -24,9 +26,33 @@ function drawGrid(
   }
 }
 
+function drawFallingTetromino(
+  ctx: Context,
+  fallingTetromino: FallingTetromino,
+  tileSize: number,
+) {
+  const pos = { x: fallingTetromino.x, y: fallingTetromino.y };
+  drawTetromino(ctx, fallingTetromino.tetromino, tileSize);
+}
+
+function drawTetromino(
+  ctx: Context,
+  tetromino: Tetromino<number, number>,
+  tileSize: number,
+) {
+  ctx.fillStyle = tetromino.color;
+  forEach(tetromino.currentState, (value, { x, y }) => {
+    if (value === 0) {
+      return;
+    }
+
+    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+  });
+}
+
 export default function tetrisCanvas(parent: HTMLElement, tileSize: number) {
   return function _tetrisCanvas(opts: RenderOptions) {
-    const { grid } = opts;
+    const { grid, fallingTetromino } = opts;
     const gameCanvas = new GameCanvas(
       grid.width * tileSize,
       grid.height * tileSize,
@@ -34,6 +60,7 @@ export default function tetrisCanvas(parent: HTMLElement, tileSize: number) {
     gameCanvas.appendTo(parent);
 
     gameCanvas.render(({ ctx }) => {
+      drawFallingTetromino(ctx, fallingTetromino, tileSize);
       drawGrid(ctx, grid.width, grid.height, tileSize);
     });
   };
