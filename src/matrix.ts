@@ -12,10 +12,6 @@ export interface Matrix<T, W extends number, H extends number> {
   height: H;
 }
 
-function tuple<T extends any[]>(...data: T) {
-  return data;
-}
-
 type MatrixCallback<T, W extends number, H extends number, ReturnValue> = (
   value: T,
   pos: Vector,
