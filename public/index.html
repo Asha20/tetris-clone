@@ -5,9 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <style>
-      canvas {
-        width: 500px;
-        height: 500px;
+      html {
+        box-sizing: border-box;
+      }
+
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
       }
     </style>
     <title>Document</title>
@@ -15,6 +26,9 @@
   <body>
     <script src="/dist/matrix.js" type="module"></script>
     <script src="/dist/GameCanvas.js" type="module"></script>
+    <script src="/dist/tetrominoes.js" type="module"></script>
+    <script src="/dist/tetris.js" type="module"></script>
+    <script src="/dist/tetris-canvas.js" type="module"></script>
     <script src="/dist/index.js" type="module"></script>
   </body>
 </html>

@@ -18,13 +18,18 @@ export default class GameCanvas {
   private width: number = 0;
   private height: number = 0;
 
+  constructor(width: number, height: number) {
+    this.width = this.canvas.width = width;
+    this.height = this.canvas.height = height;
+    this.canvas.style.width = this.width + "px";
+    this.canvas.style.height = this.height + "px";
+  }
+
   appendTo(parent: HTMLElement) {
     if (this.parent) {
       return;
     }
     parent.appendChild(this.canvas);
-    this.width = this.canvas.width = this.canvas.offsetWidth;
-    this.height = this.canvas.height = this.canvas.offsetHeight;
     this.parent = parent;
   }
 

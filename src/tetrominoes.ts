@@ -8,7 +8,7 @@ interface RenderOptions {
 
 type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
 
-interface Tetromino<W extends number, H extends number> {
+export interface Tetromino<W extends number, H extends number> {
   rotations: [
     NumMatrix<W, H>,
     NumMatrix<H, W>,
