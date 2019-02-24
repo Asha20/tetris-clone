@@ -24,6 +24,16 @@ function fallingTetromino(): FallingTetromino {
   };
 }
 
+const colorMap: Record<string, number> = {
+  cyan: 1,
+  purple: 2,
+  green: 3,
+  red: 4,
+  yellow: 5,
+  blue: 6,
+  orange: 7,
+};
+
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   fallingTetromino: FallingTetromino = {
@@ -58,7 +68,9 @@ export default class Tetris {
   /** Attempt to place the falling tetromino into the grid. */
   tryMove(deltaX: number, deltaY: number, shouldMerge: boolean) {
     const shape = this.fallingTetromino.tetromino.currentState;
-
+    const coloredShape = M.map(shape, value =>
+      value > 0 ? colorMap[this.fallingTetromino.tetromino.color] : 0,
+    );
     const pos: M.Vector = {
       x: this.fallingTetromino.x + deltaX,
       y: this.fallingTetromino.y + deltaY,
@@ -66,7 +78,7 @@ export default class Tetris {
 
     const { matrix, merged } = M.merge(
       this.grid,
-      shape,
+      coloredShape,
       pos,
       (x1, x2) => x1 !== 0 && x2 !== 0,
       (x1, x2) => x2,

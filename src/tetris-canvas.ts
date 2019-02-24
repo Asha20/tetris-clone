@@ -1,11 +1,11 @@
 import Tetris, { FallingTetromino } from "./tetris.js";
 import GameCanvas from "./GameCanvas.js";
 import { Tetromino } from "./tetrominoes.js";
-import { forEach, Vector } from "./matrix.js";
+import { forEach, Vector, Matrix } from "./matrix.js";
 
 type Context = CanvasRenderingContext2D;
 
-function drawGrid(
+function drawGridLines(
   ctx: Context,
   width: number,
   height: number,
@@ -24,6 +24,31 @@ function drawGrid(
     ctx.lineTo(width * tileSize, y * tileSize);
     ctx.stroke();
   }
+}
+
+const colorMap: Record<number, string> = {
+  1: "cyan",
+  2: "purple",
+  3: "green",
+  4: "red",
+  5: "yellow",
+  6: "blue",
+  7: "orange",
+};
+
+function drawGrid(
+  ctx: Context,
+  grid: Matrix<number, 10, 20>,
+  tileSize: number,
+) {
+  forEach(grid, (value, { x, y }) => {
+    if (value === 0) {
+      return;
+    }
+
+    ctx.fillStyle = colorMap[value];
+    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+  });
 }
 
 function drawFallingTetromino(
@@ -69,7 +94,8 @@ export default function tetrisCanvas(parent: HTMLElement, tileSize: number) {
     gameCanvas.render(({ ctx }) => {
       const { grid, fallingTetromino } = tetris;
       drawFallingTetromino(ctx, fallingTetromino, tileSize);
-      drawGrid(ctx, grid.width, grid.height, tileSize);
+      drawGrid(ctx, grid, tileSize);
+      drawGridLines(ctx, grid.width, grid.height, tileSize);
     });
   };
 }
