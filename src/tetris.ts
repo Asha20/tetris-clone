@@ -81,7 +81,7 @@ export default class Tetris {
       coloredShape,
       pos,
       (x1, x2) => x1 !== 0 && x2 !== 0,
-      (x1, x2) => x2,
+      (x1, x2) => x2 || x1,
     );
 
     if (merged && shouldMerge) {
@@ -92,6 +92,21 @@ export default class Tetris {
   }
 
   moveTetromino(deltaX: number, deltaY: number) {
+    const fallingPos: M.Vector = this.fallingTetromino;
+    const currentWidth = this.fallingTetromino.tetromino.currentState.width;
+    const currentHeight = this.fallingTetromino.tetromino.currentState.height;
+
+    // Do a simple out-of-bounds check first before attempting
+    // the more expensive merge with the grid.
+    if (
+      fallingPos.x + deltaX < 0 ||
+      fallingPos.x + currentWidth + deltaX > this.grid.width ||
+      fallingPos.y + deltaY < 0 ||
+      fallingPos.y + currentHeight + deltaY > this.grid.height
+    ) {
+      return false;
+    }
+
     const canMove = this.tryMove(deltaX, deltaY, false);
     if (canMove) {
       this.fallingTetromino.x += deltaX;
