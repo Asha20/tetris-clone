@@ -2,7 +2,7 @@ import Tetris from "./tetris.js";
 import tetrisCanvas from "./tetris-canvas.js";
 
 const game = new Tetris({
-  gravityDelay: 100,
+  gravityDelay: 200,
   controls: ({ left, right, rotateClockwise }) => {
     window.addEventListener("keydown", e => {
       switch (e.key) {

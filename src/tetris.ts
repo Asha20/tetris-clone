@@ -49,6 +49,7 @@ function rotateTetromino<W extends number, H extends number>(
   return {
     color: tetromino.color,
     rotations: tetromino.rotations,
+    wallKicks: tetromino.wallKicks,
     currentState: rotations[nextIndex],
   };
 }
@@ -56,16 +57,16 @@ function rotateTetromino<W extends number, H extends number>(
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   fallingTetromino: FallingTetromino = {
-    tetromino: tetrominoes[1],
+    tetromino: tetrominoes[0],
     pos: { x: this.grid.width / 2, y: 5 },
   };
 
   constructor(opts: TetrisOptions) {
     opts.render(this);
 
-    // setInterval(() => {
-    //   this.applyGravity();
-    // }, opts.gravityDelay);
+    setInterval(() => {
+      this.applyGravity();
+    }, opts.gravityDelay);
 
     opts.controls({
       left: () => this.moveTetromino(-1, 0),
@@ -154,12 +155,28 @@ export default class Tetris {
   }
 
   rotate(direction: 1 | -1) {
-    const rotated = rotateTetromino(this.fallingTetromino.tetromino, direction);
-    const { pos } = this.fallingTetromino;
+    const { tetromino, pos } = this.fallingTetromino;
+    const { rotations, currentState } = tetromino;
+    const rotated = rotateTetromino(tetromino, direction);
 
-    const canRotate = this.tryMerge(rotated, pos, false);
-    if (canRotate) {
-      this.fallingTetromino.tetromino = rotated;
+    const currentIndex = rotations.indexOf(currentState);
+    const directionInWords = direction === 1 ? "clockwise" : "counterClockwise";
+    const tests: M.Vector[] = tetromino.wallKicks
+      ? tetromino.wallKicks[currentIndex][directionInWords]
+      : [{ x: 0, y: 0 }];
+
+    for (const test of tests) {
+      const actualPos = {
+        x: pos.x + test.x,
+        y: pos.y + test.y,
+      };
+      const canRotate = this.tryMerge(rotated, actualPos, false);
+      if (canRotate) {
+        this.fallingTetromino.tetromino = rotated;
+        this.fallingTetromino.pos.x += test.x;
+        this.fallingTetromino.pos.y += test.y;
+        return;
+      }
     }
   }
 }
