@@ -11,30 +11,29 @@ export interface FallingTetromino {
 
 type Actions = any;
 
-export interface RenderOptions {
-  grid: NumMatrix<10, 20>;
-  fallingTetromino: FallingTetromino;
-}
-
-type Renderer = (options: RenderOptions) => void;
-
 interface TetrisOptions {
-  render: Renderer;
+  render: (tetris: Tetris) => void;
   controls: (actions: Actions) => void;
 }
 
 export default class Tetris {
-  private grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
-  private fallingTetromino: FallingTetromino = {
+  grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
+  fallingTetromino: FallingTetromino = {
     tetromino: tetrominoes[0],
     x: this.grid.width / 2,
     y: 0,
   };
 
   constructor(opts: TetrisOptions) {
-    opts.render({
-      grid: this.grid,
-      fallingTetromino: this.fallingTetromino,
+    opts.render(this);
+
+    setInterval(() => {
+      this.fallingTetromino.y =
+        (this.fallingTetromino.y + 1) % this.grid.height;
+    }, 500);
+
+    window.addEventListener("click", () => {
+      this.fallingTetromino = { tetromino: tetrominoes[1], x: 0, y: 0 };
     });
   }
 }

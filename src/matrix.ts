@@ -97,7 +97,6 @@ export function merge<
   merger: (x1: T, x2: T, pos: Vector) => T,
 ): { matrix: Matrix<T, W1, H1>; merged: boolean } {
   if (pos.x + m2.width > m1.width || pos.y + m2.height > m1.height) {
-    console.log("M2 doesn't fit inside M1");
     return { matrix: m1, merged: false };
   }
 
@@ -110,7 +109,6 @@ export function merge<
       const item2 = m2.matrix[y2][x2];
       const currentPos = { x: x1, y: y1 };
       if (isColliding(item1, item2, currentPos)) {
-        console.log(`Collision detected at (${x1}, ${y1})`);
         return { matrix: m1, merged: false };
       }
       output.matrix[y1][x1] = merger(item1, item2, currentPos);
