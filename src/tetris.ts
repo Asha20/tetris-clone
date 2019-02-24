@@ -56,16 +56,16 @@ function rotateTetromino<W extends number, H extends number>(
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   fallingTetromino: FallingTetromino = {
-    tetromino: tetrominoes[0],
-    pos: { x: this.grid.width / 2, y: 0 },
+    tetromino: tetrominoes[1],
+    pos: { x: this.grid.width / 2, y: 5 },
   };
 
   constructor(opts: TetrisOptions) {
     opts.render(this);
 
-    setInterval(() => {
-      this.applyGravity();
-    }, opts.gravityDelay);
+    // setInterval(() => {
+    //   this.applyGravity();
+    // }, opts.gravityDelay);
 
     opts.controls({
       left: () => this.moveTetromino(-1, 0),

@@ -33,7 +33,10 @@ function tetromino<W extends number, H extends number>(
 const tetrominoes = [
   // I
   tetromino("cyan", [
-    [1, 1, 1, 1]
+    [0, 0, 0, 0],
+    [1, 1, 1, 1],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
   ]),
 
   // O
@@ -46,29 +49,34 @@ const tetrominoes = [
   tetromino("purple", [
     [0, 1, 0],
     [1, 1, 1],
+    [0, 0, 0],
   ]),
 
   // S
   tetromino("green", [
     [0, 1, 1],
     [1, 1, 0],
+    [0, 0, 0],
   ]),
 
   tetromino("red", [
     [1, 1, 0],
     [0, 1, 1],
+    [0, 0, 0],
   ]),
 
   // J
   tetromino("blue", [
     [1, 0, 0],
     [1, 1, 1],
+    [0, 0, 0],
   ]),
 
   // L
   tetromino("orange", [
     [0, 0, 1],
     [1, 1, 1],
+    [0, 0, 0],
   ]),
 ];
 
