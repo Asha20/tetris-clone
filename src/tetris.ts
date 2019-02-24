@@ -5,8 +5,7 @@ type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
 
 export interface FallingTetromino {
   tetromino: Tetromino<number, number>;
-  x: number;
-  y: number;
+  pos: M.Vector;
 }
 
 type Controls = Record<
@@ -24,8 +23,7 @@ function fallingTetromino(): FallingTetromino {
   const index = Math.floor(Math.random() * tetrominoes.length);
   return {
     tetromino: tetrominoes[index],
-    x: 5,
-    y: 0,
+    pos: { x: 5, y: 0 },
   };
 }
 
@@ -59,8 +57,7 @@ export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   fallingTetromino: FallingTetromino = {
     tetromino: tetrominoes[0],
-    x: this.grid.width / 2,
-    y: 0,
+    pos: { x: this.grid.width / 2, y: 0 },
   };
 
   constructor(opts: TetrisOptions) {
@@ -114,7 +111,7 @@ export default class Tetris {
   }
 
   moveTetromino(deltaX: number, deltaY: number) {
-    const fallingPos: M.Vector = this.fallingTetromino;
+    const fallingPos = this.fallingTetromino.pos;
     const currentWidth = this.fallingTetromino.tetromino.currentState.width;
     const currentHeight = this.fallingTetromino.tetromino.currentState.height;
 
@@ -132,14 +129,14 @@ export default class Tetris {
     const canMove = this.tryMerge(
       this.fallingTetromino.tetromino,
       {
-        x: this.fallingTetromino.x + deltaX,
-        y: this.fallingTetromino.y + deltaY,
+        x: fallingPos.x + deltaX,
+        y: fallingPos.y + deltaY,
       },
       false,
     );
     if (canMove) {
-      this.fallingTetromino.x += deltaX;
-      this.fallingTetromino.y += deltaY;
+      this.fallingTetromino.pos.x += deltaX;
+      this.fallingTetromino.pos.y += deltaY;
     }
     return canMove;
   }
@@ -149,7 +146,7 @@ export default class Tetris {
     if (!moved) {
       this.tryMerge(
         this.fallingTetromino.tetromino,
-        this.fallingTetromino,
+        this.fallingTetromino.pos,
         true,
       );
       this.fallingTetromino = fallingTetromino();
@@ -158,10 +155,7 @@ export default class Tetris {
 
   rotate(direction: 1 | -1) {
     const rotated = rotateTetromino(this.fallingTetromino.tetromino, direction);
-    const pos = {
-      x: this.fallingTetromino.x,
-      y: this.fallingTetromino.y,
-    };
+    const { pos } = this.fallingTetromino;
 
     const canRotate = this.tryMerge(rotated, pos, false);
     if (canRotate) {

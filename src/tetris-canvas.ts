@@ -56,7 +56,7 @@ function drawFallingTetromino(
   fallingTetromino: FallingTetromino,
   tileSize: number,
 ) {
-  const pos: Vector = { x: fallingTetromino.x, y: fallingTetromino.y };
+  const pos = fallingTetromino.pos;
   drawTetromino(ctx, fallingTetromino.tetromino, pos, tileSize);
 }
 
