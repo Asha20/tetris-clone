@@ -9,9 +9,14 @@ export interface FallingTetromino {
   y: number;
 }
 
+type Controls = Record<
+  "left" | "right" | "rotateClockwise" | "rotateCounterClockwise",
+  () => void
+>;
+
 interface TetrisOptions {
   render: (tetris: Tetris) => void;
-  controls: (c: { left: () => void; right: () => void }) => void;
+  controls: (c: Controls) => void;
   gravityDelay: number;
 }
 
@@ -34,6 +39,22 @@ const colorMap: Record<string, number> = {
   orange: 7,
 };
 
+function rotateTetromino<W extends number, H extends number>(
+  tetromino: Tetromino<W, H>,
+  direction: 1 | -1,
+): Tetromino<W, H> {
+  const { currentState, rotations } = tetromino;
+  const currentIndex = rotations.indexOf(currentState);
+  const nextIndex =
+    (currentIndex + rotations.length + direction) % rotations.length;
+
+  return {
+    color: tetromino.color,
+    rotations: tetromino.rotations,
+    currentState: rotations[nextIndex],
+  };
+}
+
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   fallingTetromino: FallingTetromino = {
@@ -52,6 +73,8 @@ export default class Tetris {
     opts.controls({
       left: () => this.moveTetromino(-1, 0),
       right: () => this.moveTetromino(1, 0),
+      rotateClockwise: () => this.rotate(1),
+      rotateCounterClockwise: () => this.rotate(-1),
     });
 
     // Quick debug
@@ -66,15 +89,14 @@ export default class Tetris {
   }
 
   /** Attempt to place the falling tetromino into the grid. */
-  tryMove(deltaX: number, deltaY: number, shouldMerge: boolean) {
-    const shape = this.fallingTetromino.tetromino.currentState;
-    const coloredShape = M.map(shape, value =>
+  tryMerge(
+    tetromino: Tetromino<number, number>,
+    pos: M.Vector,
+    updateGrid: boolean,
+  ) {
+    const coloredShape = M.map(tetromino.currentState, value =>
       value > 0 ? colorMap[this.fallingTetromino.tetromino.color] : 0,
     );
-    const pos: M.Vector = {
-      x: this.fallingTetromino.x + deltaX,
-      y: this.fallingTetromino.y + deltaY,
-    };
 
     const { matrix, merged } = M.merge(
       this.grid,
@@ -84,7 +106,7 @@ export default class Tetris {
       (x1, x2) => x2 || x1,
     );
 
-    if (merged && shouldMerge) {
+    if (merged && updateGrid) {
       this.grid = matrix;
     }
 
@@ -107,7 +129,14 @@ export default class Tetris {
       return false;
     }
 
-    const canMove = this.tryMove(deltaX, deltaY, false);
+    const canMove = this.tryMerge(
+      this.fallingTetromino.tetromino,
+      {
+        x: this.fallingTetromino.x + deltaX,
+        y: this.fallingTetromino.y + deltaY,
+      },
+      false,
+    );
     if (canMove) {
       this.fallingTetromino.x += deltaX;
       this.fallingTetromino.y += deltaY;
@@ -118,8 +147,25 @@ export default class Tetris {
   applyGravity() {
     const moved = this.moveTetromino(0, 1);
     if (!moved) {
-      this.tryMove(0, 0, true);
+      this.tryMerge(
+        this.fallingTetromino.tetromino,
+        this.fallingTetromino,
+        true,
+      );
       this.fallingTetromino = fallingTetromino();
+    }
+  }
+
+  rotate(direction: 1 | -1) {
+    const rotated = rotateTetromino(this.fallingTetromino.tetromino, direction);
+    const pos = {
+      x: this.fallingTetromino.x,
+      y: this.fallingTetromino.y,
+    };
+
+    const canRotate = this.tryMerge(rotated, pos, false);
+    if (canRotate) {
+      this.fallingTetromino.tetromino = rotated;
     }
   }
 }
