@@ -92,26 +92,26 @@ export function merge<
 >(
   m1: Matrix<T, W1, H1>,
   m2: Matrix<T, W2, H2>,
+  outOfBoundsValue: T,
   pos: Vector,
   isColliding: (x1: T, x2: T, pos: Vector) => boolean,
   merger: (x1: T, x2: T, pos: Vector) => T,
 ): { matrix: Matrix<T, W1, H1>; merged: boolean } {
-  if (pos.x + m2.width > m1.width || pos.y + m2.height > m1.height) {
-    return { matrix: m1, merged: false };
-  }
-
   const output = clone(m1);
   for (let y2 = 0; y2 < m2.height; y2++) {
     for (let x2 = 0; x2 < m2.width; x2++) {
       const x1 = pos.x + x2;
       const y1 = pos.y + y2;
-      const item1 = m1.matrix[y1][x1];
-      const item2 = m2.matrix[y2][x2];
       const currentPos = { x: x1, y: y1 };
+      const isOutOfBounds = x1 >= m1.width || y1 >= m1.height;
+      const item1 = isOutOfBounds ? outOfBoundsValue : m1.matrix[y1][x1];
+      const item2 = m2.matrix[y2][x2];
       if (isColliding(item1, item2, currentPos)) {
         return { matrix: m1, merged: false };
       }
-      output.matrix[y1][x1] = merger(item1, item2, currentPos);
+      if (!isOutOfBounds) {
+        output.matrix[y1][x1] = merger(item1, item2, currentPos);
+      }
     }
   }
 
