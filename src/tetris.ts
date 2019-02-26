@@ -9,7 +9,7 @@ export interface FallingTetromino {
 }
 
 type Controls = Record<
-  "left" | "right" | "rotateClockwise" | "rotateCounterClockwise",
+  "left" | "right" | "rotateClockwise" | "rotateCounterClockwise" | "hardDrop",
   () => void
 >;
 
@@ -73,6 +73,7 @@ export default class Tetris {
       right: () => this.moveTetromino(1, 0),
       rotateClockwise: () => this.rotate(1),
       rotateCounterClockwise: () => this.rotate(-1),
+      hardDrop: () => this.hardDrop(),
     });
 
     // Quick debug
@@ -166,5 +167,18 @@ export default class Tetris {
         return;
       }
     }
+  }
+
+  hardDrop() {
+    const { tetromino } = this.fallingTetromino;
+    const { x: fallX } = this.fallingTetromino.pos;
+
+    let fallY = this.fallingTetromino.pos.y + 1;
+    while (this.tryMerge(tetromino, { x: fallX, y: fallY }, false)) {
+      fallY += 1;
+    }
+
+    this.tryMerge(tetromino, { x: fallX, y: fallY - 1 }, true);
+    this.fallingTetromino = fallingTetromino();
   }
 }
