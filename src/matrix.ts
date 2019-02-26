@@ -103,7 +103,8 @@ export function merge<
       const x1 = pos.x + x2;
       const y1 = pos.y + y2;
       const currentPos = { x: x1, y: y1 };
-      const isOutOfBounds = x1 >= m1.width || y1 >= m1.height;
+      const isOutOfBounds =
+        x1 < 0 || x1 >= m1.width || y1 < 0 || y1 >= m1.height;
       const item1 = isOutOfBounds ? outOfBoundsValue : m1.matrix[y1][x1];
       const item2 = m2.matrix[y2][x2];
       if (isColliding(item1, item2, currentPos)) {
