@@ -113,8 +113,7 @@ export default class Tetris {
   tryMerge(
     tetromino: Tetromino<number, number>,
     pos: M.Vector,
-    updateGrid: boolean,
-  ) {
+  ): [boolean, NumMatrix<10, 20>] {
     const coloredShape = M.map(tetromino.currentState, value =>
       value > 0 ? colorMap[this.fallingTetromino.tetromino.color] : 0,
     );
@@ -128,24 +127,16 @@ export default class Tetris {
       (x1, x2) => x2 || x1,
     );
 
-    if (merged && updateGrid) {
-      this.grid = matrix;
-    }
-
-    return merged;
+    return [merged, matrix];
   }
 
   moveTetromino(deltaX: number, deltaY: number) {
     const fallingPos = this.fallingTetromino.pos;
 
-    const canMove = this.tryMerge(
-      this.fallingTetromino.tetromino,
-      {
-        x: fallingPos.x + deltaX,
-        y: fallingPos.y + deltaY,
-      },
-      false,
-    );
+    const [canMove] = this.tryMerge(this.fallingTetromino.tetromino, {
+      x: fallingPos.x + deltaX,
+      y: fallingPos.y + deltaY,
+    });
     if (canMove) {
       this.fallingTetromino.pos.x += deltaX;
       this.fallingTetromino.pos.y += deltaY;
@@ -156,11 +147,11 @@ export default class Tetris {
   applyGravity() {
     const moved = this.moveTetromino(0, 1);
     if (!moved) {
-      this.tryMerge(
+      const [_, newGrid] = this.tryMerge(
         this.fallingTetromino.tetromino,
         this.fallingTetromino.pos,
-        true,
       );
+      this.grid = newGrid;
       this.fallingTetromino = this.nextFallingTetromino();
       this.applyGravity();
     }
@@ -182,7 +173,7 @@ export default class Tetris {
         x: pos.x + test.x,
         y: pos.y + test.y,
       };
-      const canRotate = this.tryMerge(rotated, actualPos, false);
+      const [canRotate] = this.tryMerge(rotated, actualPos);
       if (canRotate) {
         this.fallingTetromino.tetromino = rotated;
         this.fallingTetromino.pos.x += test.x;
@@ -197,11 +188,15 @@ export default class Tetris {
     const { x: fallX } = this.fallingTetromino.pos;
 
     let fallY = this.fallingTetromino.pos.y + 1;
-    while (this.tryMerge(tetromino, { x: fallX, y: fallY }, false)) {
+    while (this.tryMerge(tetromino, { x: fallX, y: fallY })[0]) {
       fallY += 1;
     }
 
-    this.tryMerge(tetromino, { x: fallX, y: fallY - 1 }, true);
+    const [_, newGrid] = this.tryMerge(tetromino, {
+      x: fallX,
+      y: fallY - 1,
+    });
+    this.grid = newGrid;
     this.fallingTetromino = this.nextFallingTetromino();
     this.applyGravity();
   }
