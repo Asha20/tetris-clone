@@ -8,8 +8,18 @@ export interface FallingTetromino {
   pos: M.Vector;
 }
 
+function log(...args: any[]) {
+  // tslint:disable-next-line no-console
+  console.log(...args);
+}
+
 type Controls = Record<
-  "left" | "right" | "rotateClockwise" | "rotateCounterClockwise" | "hardDrop",
+  | "left"
+  | "right"
+  | "rotateClockwise"
+  | "rotateCounterClockwise"
+  | "hardDrop"
+  | "pause",
   () => void
 >;
 
@@ -63,6 +73,10 @@ export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   tetrominoGen: IterableIterator<Tetromino<number, number>>;
   fallingTetromino: FallingTetromino;
+  private gameOver: boolean = false;
+  private paused: boolean = false;
+  private gravityIntervalId: number = 0;
+  private gravityDelay: number;
 
   constructor(userOptions: UserOptions) {
     const opts = Object.assign(
@@ -75,7 +89,8 @@ export default class Tetris {
     this.fallingTetromino = this.nextFallingTetromino();
     this.applyGravity();
 
-    setInterval(() => {
+    this.gravityDelay = opts.gravityDelay;
+    this.gravityIntervalId = setInterval(() => {
       this.applyGravity();
     }, opts.gravityDelay);
 
@@ -85,6 +100,7 @@ export default class Tetris {
       rotateClockwise: () => this.rotate(1),
       rotateCounterClockwise: () => this.rotate(-1),
       hardDrop: () => this.hardDrop(),
+      pause: () => this.pause(),
     });
 
     // Quick debug
@@ -131,6 +147,10 @@ export default class Tetris {
   }
 
   moveTetromino(deltaX: number, deltaY: number) {
+    if (this.gameOver || this.paused) {
+      return;
+    }
+
     const fallingPos = this.fallingTetromino.pos;
 
     const [canMove] = this.tryMerge(this.fallingTetromino.tetromino, {
@@ -145,8 +165,17 @@ export default class Tetris {
   }
 
   applyGravity() {
+    if (this.gameOver || this.paused) {
+      return;
+    }
+
     const moved = this.moveTetromino(0, 1);
     if (!moved) {
+      if (this.fallingTetromino.pos.y <= 0) {
+        this.gameOver = true;
+        log("Game over!");
+      }
+
       const [_, newGrid] = this.tryMerge(
         this.fallingTetromino.tetromino,
         this.fallingTetromino.pos,
@@ -158,6 +187,10 @@ export default class Tetris {
   }
 
   rotate(direction: 1 | -1) {
+    if (this.gameOver || this.paused) {
+      return;
+    }
+
     const { tetromino, pos } = this.fallingTetromino;
     const { rotations, currentState } = tetromino;
     const rotated = rotateTetromino(tetromino, direction);
@@ -184,6 +217,10 @@ export default class Tetris {
   }
 
   hardDrop() {
+    if (this.gameOver || this.paused) {
+      return;
+    }
+
     const { tetromino } = this.fallingTetromino;
     const { x: fallX } = this.fallingTetromino.pos;
 
@@ -199,5 +236,23 @@ export default class Tetris {
     this.grid = newGrid;
     this.fallingTetromino = this.nextFallingTetromino();
     this.applyGravity();
+  }
+
+  pause() {
+    if (this.gameOver) {
+      this.paused = false;
+      return;
+    }
+
+    this.paused = !this.paused;
+    log("Pause:", this.paused);
+
+    if (this.paused) {
+      clearInterval(this.gravityIntervalId);
+    } else {
+      this.gravityIntervalId = setInterval(() => {
+        this.applyGravity();
+      }, this.gravityDelay);
+    }
   }
 }

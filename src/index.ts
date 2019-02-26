@@ -3,7 +3,7 @@ import tetrisCanvas from "./tetris-canvas.js";
 
 const game = new Tetris({
   gravityDelay: 200,
-  controls: ({ left, right, rotateClockwise, hardDrop }) => {
+  controls: ({ left, right, rotateClockwise, hardDrop, pause }) => {
     window.addEventListener("keydown", e => {
       switch (e.key) {
         case "ArrowLeft":
@@ -14,6 +14,10 @@ const game = new Tetris({
           return rotateClockwise();
         case " ":
           return hardDrop();
+        case "Escape":
+        case "F1":
+          e.preventDefault();
+          return pause();
       }
     });
   },
