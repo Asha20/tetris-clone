@@ -12,6 +12,7 @@ export interface Tetromino<W extends number, H extends number> {
   wallKicks: WallKicks;
   currentState: NumMatrix<W, H> | NumMatrix<H, W>;
   color: string;
+  name: string;
 }
 
 interface Tuple<T extends any, L extends number> extends Array<T> {
@@ -163,6 +164,7 @@ const fourWideKicks: WallKicks = [
 ];
 
 function tetromino<W extends number, H extends number>(
+  name: string,
   color: string,
   wallKicks: WallKicks,
   shape: number[][],
@@ -173,6 +175,7 @@ function tetromino<W extends number, H extends number>(
   const matrix4 = M.rotateClockwise(matrix3);
 
   return {
+    name,
     rotations: [matrix1, matrix2, matrix3, matrix4],
     currentState: matrix1,
     wallKicks,
@@ -183,7 +186,7 @@ function tetromino<W extends number, H extends number>(
 // prettier-ignore
 const tetrominoes = [
   // I
-  tetromino("cyan", fourWideKicks, [
+  tetromino("I", "cyan", fourWideKicks, [
     [0, 0, 0, 0],
     [1, 1, 1, 1],
     [0, 0, 0, 0],
@@ -191,40 +194,41 @@ const tetrominoes = [
   ]),
 
   // O
-  tetromino("yellow", null, [
+  tetromino("O", "yellow", null, [
     [1, 1],
     [1, 1],
   ]),
 
   // T
-  tetromino("purple", threeWideKicks, [
+  tetromino("T", "purple", threeWideKicks, [
     [0, 1, 0],
     [1, 1, 1],
     [0, 0, 0],
   ]),
 
   // S
-  tetromino("green", threeWideKicks, [
+  tetromino("S", "green", threeWideKicks, [
     [0, 1, 1],
     [1, 1, 0],
     [0, 0, 0],
   ]),
 
-  tetromino("red", threeWideKicks, [
+  // Z
+  tetromino("Z", "red", threeWideKicks, [
     [1, 1, 0],
     [0, 1, 1],
     [0, 0, 0],
   ]),
 
   // J
-  tetromino("blue", threeWideKicks, [
+  tetromino("J", "blue", threeWideKicks, [
     [1, 0, 0],
     [1, 1, 1],
     [0, 0, 0],
   ]),
 
   // L
-  tetromino("orange", threeWideKicks, [
+  tetromino("L", "orange", threeWideKicks, [
     [0, 0, 1],
     [1, 1, 1],
     [0, 0, 0],
