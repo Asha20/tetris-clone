@@ -16,6 +16,7 @@ type Controls = Record<
 interface TetrisOptions {
   render: (tetris: Tetris) => void;
   controls: (c: Controls) => void;
+  tetrominoGen: IterableIterator<Tetromino<number, number>>;
   gravityDelay: number;
 }
 
@@ -37,6 +38,13 @@ const colorMap: Record<string, number> = {
   orange: 7,
 };
 
+function* randomTetromino() {
+  while (true) {
+    const index = Math.floor(Math.random() * tetrominoes.length);
+    yield tetrominoes[index];
+  }
+}
+
 function rotateTetromino<W extends number, H extends number>(
   tetromino: Tetromino<W, H>,
   direction: 1 | -1,
@@ -46,23 +54,19 @@ function rotateTetromino<W extends number, H extends number>(
   const nextIndex =
     (currentIndex + rotations.length + direction) % rotations.length;
 
-  return {
-    color: tetromino.color,
-    rotations: tetromino.rotations,
-    wallKicks: tetromino.wallKicks,
-    currentState: rotations[nextIndex],
-  };
+  return Object.assign({}, tetromino, { currentState: rotations[nextIndex] });
 }
 
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
-  fallingTetromino: FallingTetromino = {
-    tetromino: tetrominoes[0],
-    pos: { x: this.grid.width / 2, y: 5 },
-  };
-
   constructor(opts: TetrisOptions) {
+  tetrominoGen: IterableIterator<Tetromino<number, number>>;
+  fallingTetromino: FallingTetromino;
+
     opts.render(this);
+    this.tetrominoGen = opts.tetrominoGen;
+    this.fallingTetromino = this.nextFallingTetromino();
+    this.applyGravity();
 
     setInterval(() => {
       this.applyGravity();
@@ -87,6 +91,17 @@ export default class Tetris {
     });
   }
 
+  nextFallingTetromino(): FallingTetromino {
+    const tetromino = this.tetrominoGen.next().value;
+    const x = Math.floor(
+      this.grid.width / 2 - tetromino.currentState.width / 2,
+    );
+    // SRS says that the I piece spawns one row above the
+    // playfield, while the others spawn 2 rows above.
+    const y = tetromino.name === "I" ? -1 : -2;
+    return { tetromino, pos: { x, y } };
+  }
+
   /** Attempt to place the falling tetromino into the grid. */
   tryMerge(
     tetromino: Tetromino<number, number>,
@@ -102,7 +117,7 @@ export default class Tetris {
       coloredShape,
       1,
       pos,
-      (x1, x2) => x1 !== 0 && x2 !== 0,
+      (x1, x2, { y }) => x1 !== 0 && x2 !== 0 && y >= 0,
       (x1, x2) => x2 || x1,
     );
 
@@ -139,7 +154,8 @@ export default class Tetris {
         this.fallingTetromino.pos,
         true,
       );
-      this.fallingTetromino = fallingTetromino();
+      this.fallingTetromino = this.nextFallingTetromino();
+      this.applyGravity();
     }
   }
 
@@ -179,6 +195,7 @@ export default class Tetris {
     }
 
     this.tryMerge(tetromino, { x: fallX, y: fallY - 1 }, true);
-    this.fallingTetromino = fallingTetromino();
+    this.fallingTetromino = this.nextFallingTetromino();
+    this.applyGravity();
   }
 }
