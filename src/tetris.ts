@@ -8,6 +8,9 @@ export interface FallingTetromino {
   pos: M.Vector;
 }
 
+// tslint:disable-next-line no-empty
+function noop() {}
+
 function log(...args: any[]) {
   // tslint:disable-next-line no-console
   console.log(...args);
@@ -23,9 +26,51 @@ type Controls = Record<
   () => void
 >;
 
+function defaultControls({
+  left,
+  right,
+  rotateClockwise,
+  rotateCounterClockwise,
+  hardDrop,
+  pause,
+}: Controls) {
+  function keyHandler(e: KeyboardEvent) {
+    switch (e.key) {
+      case "ArrowLeft":
+        return left();
+      case "ArrowRight":
+        return right();
+      case "ArrowUp":
+      case "x":
+        return rotateClockwise();
+      case "Control":
+      case "z":
+        return rotateCounterClockwise();
+      case " ":
+        return hardDrop();
+      case "Escape":
+      case "F1":
+        e.preventDefault();
+        return pause();
+    }
+  }
+  if (window === undefined) {
+    log(
+      "Unable to apply default Tetris keyboard bindings in a non-browser environment. Please provide a callback in the constructor and set up the controls manually.",
+    );
+    return noop;
+  }
+
+  window.addEventListener("keydown", keyHandler);
+
+  return () => {
+    window.removeEventListener("keydown", keyHandler);
+  };
+}
+
 interface TetrisOptions {
   render: (tetris: Tetris) => void;
-  controls: (c: Controls) => void;
+  controls: (c: Controls) => () => void;
   tetrominoGen: IterableIterator<Tetromino<number, number>>;
   gravityDelay: number;
 }
@@ -33,9 +78,10 @@ interface TetrisOptions {
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 type Overwrite<T, K> = Omit<T, keyof K> & K;
 
-type DefaultOptions = Pick<TetrisOptions, "tetrominoGen">;
+type DefaultOptions = Pick<TetrisOptions, "tetrominoGen" | "controls">;
 const defaultOptions: DefaultOptions = {
   tetrominoGen: randomTetromino(),
+  controls: defaultControls,
 };
 
 type UserOptions = Overwrite<TetrisOptions, Partial<DefaultOptions>>;
@@ -77,6 +123,7 @@ export default class Tetris {
   private paused: boolean = false;
   private gravityIntervalId: number = 0;
   private gravityDelay: number;
+  private unloadControls: () => void;
 
   constructor(userOptions: UserOptions) {
     const opts = Object.assign(
@@ -94,14 +141,7 @@ export default class Tetris {
       this.applyGravity();
     }, opts.gravityDelay);
 
-    opts.controls({
-      left: () => this.moveTetromino(-1, 0),
-      right: () => this.moveTetromino(1, 0),
-      rotateClockwise: () => this.rotate(1),
-      rotateCounterClockwise: () => this.rotate(-1),
-      hardDrop: () => this.hardDrop(),
-      pause: () => this.pause(),
-    });
+    this.unloadControls = this.setupControls(opts.controls);
 
     // Quick debug
     window.addEventListener("click", e => {
@@ -111,6 +151,17 @@ export default class Tetris {
 
       // tslint:disable-next-line no-console
       console.log(this.grid);
+    });
+  }
+
+  setupControls(fn: (c: Controls) => () => void) {
+    return fn({
+      left: () => this.moveTetromino(-1, 0),
+      right: () => this.moveTetromino(1, 0),
+      rotateClockwise: () => this.rotate(1),
+      rotateCounterClockwise: () => this.rotate(-1),
+      hardDrop: () => this.hardDrop(),
+      pause: () => this.pause(),
     });
   }
 
@@ -173,6 +224,7 @@ export default class Tetris {
     if (!moved) {
       if (this.fallingTetromino.pos.y <= 0) {
         this.gameOver = true;
+        this.unloadControls();
         log("Game over!");
       }
 
