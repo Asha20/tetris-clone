@@ -20,13 +20,15 @@ interface TetrisOptions {
   gravityDelay: number;
 }
 
-function fallingTetromino(): FallingTetromino {
-  const index = Math.floor(Math.random() * tetrominoes.length);
-  return {
-    tetromino: tetrominoes[index],
-    pos: { x: 5, y: 0 },
-  };
-}
+type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+type Overwrite<T, K> = Omit<T, keyof K> & K;
+
+type DefaultOptions = Pick<TetrisOptions, "tetrominoGen">;
+const defaultOptions: DefaultOptions = {
+  tetrominoGen: randomTetromino(),
+};
+
+type UserOptions = Overwrite<TetrisOptions, Partial<DefaultOptions>>;
 
 const colorMap: Record<string, number> = {
   cyan: 1,
@@ -59,10 +61,15 @@ function rotateTetromino<W extends number, H extends number>(
 
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
-  constructor(opts: TetrisOptions) {
   tetrominoGen: IterableIterator<Tetromino<number, number>>;
   fallingTetromino: FallingTetromino;
 
+  constructor(userOptions: UserOptions) {
+    const opts = Object.assign(
+      {},
+      defaultOptions,
+      userOptions,
+    ) as TetrisOptions;
     opts.render(this);
     this.tetrominoGen = opts.tetrominoGen;
     this.fallingTetromino = this.nextFallingTetromino();
