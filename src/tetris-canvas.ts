@@ -79,23 +79,69 @@ function drawTetromino(
   });
 }
 
+function translate(
+  ctx: Context,
+  x: number,
+  y: number,
+  fn: (ctx: Context) => void,
+) {
+  ctx.translate(x, y);
+  fn(ctx);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function drawPlayfield(
+  ctx: Context,
+  pos: Vector,
+  grid: Matrix<number, 10, 20>,
+  fallingTetromino: FallingTetromino,
+  tileSize: number,
+) {
+  translate(ctx, pos.x, pos.y, () => {
+    ctx.strokeRect(0, 0, tileSize * grid.width, tileSize * 20);
+    drawFallingTetromino(ctx, fallingTetromino, tileSize);
+    drawGrid(ctx, grid, tileSize);
+    drawGridLines(ctx, grid.width, grid.height, tileSize);
+  });
+}
+
+function drawRightSidebar(
+  ctx: Context,
+  pos: Vector,
+  preview: Array<Tetromino<number, number>>,
+  tileSize: number,
+) {
+  translate(ctx, pos.x, pos.y, () => {
+    ctx.strokeRect(0, 0, tileSize * 6, tileSize * 20);
+
+    preview.forEach((tetromino, i) => {
+      drawTetromino(ctx, tetromino, { x: 1, y: i * 4 + 1 }, tileSize);
+    });
+  });
+}
+
 export default function tetrisCanvas(parent: HTMLElement, tileSize: number) {
-  let gameCanvas: GameCanvas;
+  function tile(x: number) {
+    return x * tileSize;
+  }
 
   return function _tetrisCanvas(tetris: Tetris) {
-    if (!gameCanvas) {
-      gameCanvas = new GameCanvas(
-        tetris.grid.width * tileSize,
-        tetris.grid.height * tileSize,
-      );
-      gameCanvas.appendTo(parent);
-    }
+    const canvasWidth = tile(tetris.grid.width + 10);
+    const canvasHeight = tile(tetris.grid.height);
+    const gridWidth = tile(tetris.grid.width);
+    const gameCanvas = new GameCanvas(canvasWidth, canvasHeight);
+    const gridX = tile(4);
+    const rightSidebarX = gridX + gridWidth;
 
+    const playfieldPos: Vector = { x: gridX, y: 0 };
+    const rightSidebarPos: Vector = { x: rightSidebarX, y: 0 };
+
+    gameCanvas.appendTo(parent);
     gameCanvas.render(({ ctx }) => {
-      const { grid, fallingTetromino } = tetris;
-      drawFallingTetromino(ctx, fallingTetromino, tileSize);
-      drawGrid(ctx, grid, tileSize);
-      drawGridLines(ctx, grid.width, grid.height, tileSize);
+      const { grid, fallingTetromino, preview } = tetris;
+
+      drawPlayfield(ctx, playfieldPos, grid, fallingTetromino, tileSize);
+      drawRightSidebar(ctx, rightSidebarPos, preview, tileSize);
     });
   };
 }
