@@ -11,10 +11,8 @@ export interface FallingTetromino {
 // tslint:disable-next-line no-empty
 function noop() {}
 
-function log(...args: any[]) {
-  // tslint:disable-next-line no-console
-  console.log(...args);
-}
+// tslint:disable-next-line no-console
+const log = console.log.bind(console);
 
 type Controls = Record<
   | "left"
@@ -73,15 +71,20 @@ interface TetrisOptions {
   controls: (c: Controls) => () => void;
   tetrominoGen: IterableIterator<Tetromino<number, number>>;
   gravityDelay: number;
+  previewAmount: number;
 }
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 type Overwrite<T, K> = Omit<T, keyof K> & K;
 
-type DefaultOptions = Pick<TetrisOptions, "tetrominoGen" | "controls">;
+type DefaultOptions = Pick<
+  TetrisOptions,
+  "tetrominoGen" | "controls" | "previewAmount"
+>;
 const defaultOptions: DefaultOptions = {
   tetrominoGen: randomTetromino(),
   controls: defaultControls,
+  previewAmount: 3,
 };
 
 type UserOptions = Overwrite<TetrisOptions, Partial<DefaultOptions>>;
@@ -119,6 +122,7 @@ export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
   tetrominoGen: IterableIterator<Tetromino<number, number>>;
   fallingTetromino: FallingTetromino;
+  preview: Array<Tetromino<number, number>>;
   private gameOver: boolean = false;
   private paused: boolean = false;
   private gravityIntervalId: number = 0;
@@ -133,6 +137,9 @@ export default class Tetris {
     ) as TetrisOptions;
     opts.render(this);
     this.tetrominoGen = opts.tetrominoGen;
+    this.preview = Array.from({ length: opts.previewAmount }, () => {
+      return opts.tetrominoGen.next().value;
+    });
     this.fallingTetromino = this.nextFallingTetromino();
     this.applyGravity();
 
@@ -166,7 +173,9 @@ export default class Tetris {
   }
 
   nextFallingTetromino(): FallingTetromino {
-    const tetromino = this.tetrominoGen.next().value;
+    const tetromino = this.preview.shift()!;
+    this.preview.push(this.tetrominoGen.next().value);
+    log("Preview:", this.preview.map(t => t.name).join(" "));
     const x = Math.floor(
       this.grid.width / 2 - tetromino.currentState.width / 2,
     );
