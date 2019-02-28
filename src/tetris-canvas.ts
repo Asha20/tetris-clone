@@ -105,6 +105,21 @@ function drawPlayfield(
   });
 }
 
+function drawLeftSidebar(
+  ctx: Context,
+  pos: Vector,
+  holding: Tetromino<number, number> | null,
+  tileSize: number,
+) {
+  translate(ctx, pos.x, pos.y, () => {
+    ctx.strokeRect(0, 0, tileSize * 6, tileSize * 20);
+
+    if (holding) {
+      drawTetromino(ctx, holding, { x: 1, y: 1 }, tileSize);
+    }
+  });
+}
+
 function drawRightSidebar(
   ctx: Context,
   pos: Vector,
@@ -126,20 +141,22 @@ export default function tetrisCanvas(parent: HTMLElement, tileSize: number) {
   }
 
   return function _tetrisCanvas(tetris: Tetris) {
-    const canvasWidth = tile(tetris.grid.width + 10);
+    const canvasWidth = tile(tetris.grid.width + 12);
     const canvasHeight = tile(tetris.grid.height);
     const gridWidth = tile(tetris.grid.width);
     const gameCanvas = new GameCanvas(canvasWidth, canvasHeight);
-    const gridX = tile(4);
+    const gridX = tile(6);
     const rightSidebarX = gridX + gridWidth;
 
     const playfieldPos: Vector = { x: gridX, y: 0 };
+    const leftSidebarPos: Vector = { x: 0, y: 0 };
     const rightSidebarPos: Vector = { x: rightSidebarX, y: 0 };
 
     gameCanvas.appendTo(parent);
     gameCanvas.render(({ ctx }) => {
-      const { grid, fallingTetromino, preview } = tetris;
+      const { grid, fallingTetromino, preview, holding } = tetris;
 
+      drawLeftSidebar(ctx, leftSidebarPos, holding, tileSize);
       drawPlayfield(ctx, playfieldPos, grid, fallingTetromino, tileSize);
       drawRightSidebar(ctx, rightSidebarPos, preview, tileSize);
     });
