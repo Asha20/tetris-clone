@@ -22,7 +22,7 @@ type Controls = Record<
   | "hardDrop"
   | "pause",
   () => void
->;
+> & { softDrop: (state: boolean) => void };
 
 function defaultControls({
   left,
@@ -31,9 +31,12 @@ function defaultControls({
   rotateCounterClockwise,
   hardDrop,
   pause,
+  softDrop,
 }: Controls) {
-  function keyHandler(e: KeyboardEvent) {
+  function onKeyDown(e: KeyboardEvent) {
     switch (e.key) {
+      case "ArrowDown":
+        return softDrop(true);
       case "ArrowLeft":
         return left();
       case "ArrowRight":
@@ -52,6 +55,13 @@ function defaultControls({
         return pause();
     }
   }
+
+  function onKeyUp(e: KeyboardEvent) {
+    if (e.key === "ArrowDown") {
+      softDrop(false);
+    }
+  }
+
   if (window === undefined) {
     log(
       "Unable to apply default Tetris keyboard bindings in a non-browser environment. Please provide a callback in the constructor and set up the controls manually.",
@@ -59,10 +69,12 @@ function defaultControls({
     return noop;
   }
 
-  window.addEventListener("keydown", keyHandler);
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
 
   return () => {
-    window.removeEventListener("keydown", keyHandler);
+    window.removeEventListener("keydown", onKeyDown);
+    window.removeEventListener("keyup", onKeyUp);
   };
 }
 
@@ -125,9 +137,24 @@ export default class Tetris {
   preview: Array<Tetromino<number, number>>;
   private gameOver: boolean = false;
   private paused: boolean = false;
-  private gravityIntervalId: number = 0;
-  private gravityDelay: number;
+  private softDropping: boolean = false;
+  private originalGravityDelay: number;
+  private _gravityIntervalId: number = 0;
+  private _gravityDelay: number = 0;
   private unloadControls: () => void;
+
+  get gravity() {
+    return this._gravityDelay;
+  }
+
+  set gravity(x: number) {
+    clearInterval(this._gravityIntervalId);
+
+    if (x > 0) {
+      this._gravityIntervalId = setInterval(() => this.applyGravity(), x);
+      this._gravityDelay = x;
+    }
+  }
 
   constructor(userOptions: UserOptions) {
     const opts = Object.assign(
@@ -143,22 +170,10 @@ export default class Tetris {
     this.fallingTetromino = this.nextFallingTetromino();
     this.applyGravity();
 
-    this.gravityDelay = opts.gravityDelay;
-    this.gravityIntervalId = setInterval(() => {
-      this.applyGravity();
-    }, opts.gravityDelay);
+    this.gravity = opts.gravityDelay;
+    this.originalGravityDelay = opts.gravityDelay;
 
     this.unloadControls = this.setupControls(opts.controls);
-
-    // Quick debug
-    window.addEventListener("click", e => {
-      if (!e.shiftKey) {
-        return;
-      }
-
-      // tslint:disable-next-line no-console
-      console.log(this.grid);
-    });
   }
 
   setupControls(fn: (c: Controls) => () => void) {
@@ -169,6 +184,7 @@ export default class Tetris {
       rotateCounterClockwise: () => this.rotate(-1),
       hardDrop: () => this.hardDrop(),
       pause: () => this.pause(),
+      softDrop: (state: boolean) => this.toggleSoftDrop(state),
     });
   }
 
@@ -277,6 +293,21 @@ export default class Tetris {
     }
   }
 
+  toggleSoftDrop(state: boolean) {
+    if (this.softDropping === state) {
+      return;
+    }
+    this.softDropping = state;
+
+    if (state) {
+      this.applyGravity();
+    }
+
+    this.gravity = state
+      ? this.originalGravityDelay / 2
+      : this.originalGravityDelay;
+  }
+
   hardDrop() {
     if (this.gameOver || this.paused) {
       return;
@@ -308,12 +339,6 @@ export default class Tetris {
     this.paused = !this.paused;
     log("Pause:", this.paused);
 
-    if (this.paused) {
-      clearInterval(this.gravityIntervalId);
-    } else {
-      this.gravityIntervalId = setInterval(() => {
-        this.applyGravity();
-      }, this.gravityDelay);
-    }
+    this.gravity = this.paused ? 0 : this._gravityDelay;
   }
 }
