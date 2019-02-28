@@ -2,7 +2,10 @@ import * as M from "./matrix.js";
 
 type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
 
-export interface Tetromino<W extends number, H extends number> {
+export interface Tetromino<
+  W extends number = number,
+  H extends number = number
+> {
   rotations: [
     NumMatrix<W, H>,
     NumMatrix<H, W>,

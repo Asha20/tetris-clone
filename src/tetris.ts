@@ -4,7 +4,7 @@ import tetrominoes, { Tetromino } from "./tetrominoes.js";
 type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
 
 export interface FallingTetromino {
-  tetromino: Tetromino<number, number>;
+  tetromino: Tetromino;
   pos: M.Vector;
 }
 
@@ -86,7 +86,7 @@ function defaultControls({
 interface TetrisOptions {
   render: (tetris: Tetris) => void;
   controls: (c: Controls) => () => void;
-  tetrominoGen: IterableIterator<Tetromino<number, number>>;
+  tetrominoGen: IterableIterator<Tetromino>;
   gravityDelay: number;
   previewAmount: number;
 }
@@ -137,10 +137,10 @@ function rotateTetromino<W extends number, H extends number>(
 
 export default class Tetris {
   grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
-  tetrominoGen: IterableIterator<Tetromino<number, number>>;
+  tetrominoGen: IterableIterator<Tetromino>;
   fallingTetromino: FallingTetromino;
-  preview: Array<Tetromino<number, number>>;
-  holding: Tetromino<number, number> | null = null;
+  preview: Tetromino[];
+  holding: Tetromino | undefined = undefined;
   private canHold: boolean = true;
   private gameOver: boolean = false;
   private paused: boolean = false;
@@ -196,7 +196,7 @@ export default class Tetris {
     });
   }
 
-  nextFallingTetromino(piece?: Tetromino<number, number>): FallingTetromino {
+  nextFallingTetromino(piece?: Tetromino): FallingTetromino {
     const tetromino = piece || this.preview.shift()!;
     const x = Math.floor(
       this.grid.width / 2 - tetromino.currentState.width / 2,
@@ -212,10 +212,7 @@ export default class Tetris {
   }
 
   /** Attempt to place the falling tetromino into the grid. */
-  tryMerge(
-    tetromino: Tetromino<number, number>,
-    pos: M.Vector,
-  ): [boolean, NumMatrix<10, 20>] {
+  tryMerge(tetromino: Tetromino, pos: M.Vector): [boolean, NumMatrix<10, 20>] {
     const coloredShape = M.map(tetromino.currentState, value =>
       value > 0 ? colorMap[this.fallingTetromino.tetromino.color] : 0,
     );
@@ -309,7 +306,7 @@ export default class Tetris {
       return;
     }
 
-    const heldPiece = this.holding || undefined;
+    const heldPiece = this.holding;
     this.holding = this.fallingTetromino.tetromino;
     this.fallingTetromino = this.nextFallingTetromino(heldPiece);
     this.holding.currentState = this.holding.rotations[0];

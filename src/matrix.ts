@@ -6,7 +6,11 @@ export interface Vector {
   y: number;
 }
 
-export interface Matrix<T, W extends number, H extends number> {
+export interface Matrix<
+  T,
+  W extends number = number,
+  H extends number = number
+> {
   matrix: _Matrix<T, W, H>;
   width: W;
   height: H;

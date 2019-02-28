@@ -62,7 +62,7 @@ function drawFallingTetromino(
 
 function drawTetromino(
   ctx: Context,
-  tetromino: Tetromino<number, number>,
+  tetromino: Tetromino,
   pos: Vector,
   tileSize: number,
 ) {
@@ -108,7 +108,7 @@ function drawPlayfield(
 function drawLeftSidebar(
   ctx: Context,
   pos: Vector,
-  holding: Tetromino<number, number> | null,
+  holding: Tetromino | null,
   tileSize: number,
 ) {
   translate(ctx, pos.x, pos.y, () => {
@@ -123,7 +123,7 @@ function drawLeftSidebar(
 function drawRightSidebar(
   ctx: Context,
   pos: Vector,
-  preview: Array<Tetromino<number, number>>,
+  preview: Tetromino[],
   tileSize: number,
 ) {
   translate(ctx, pos.x, pos.y, () => {
