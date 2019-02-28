@@ -20,7 +20,8 @@ type Controls = Record<
   | "rotateClockwise"
   | "rotateCounterClockwise"
   | "hardDrop"
-  | "pause",
+  | "pause"
+  | "hold",
   () => void
 > & { softDrop: (state: boolean) => void };
 
@@ -32,9 +33,13 @@ function defaultControls({
   hardDrop,
   pause,
   softDrop,
+  hold,
 }: Controls) {
   function onKeyDown(e: KeyboardEvent) {
     switch (e.key) {
+      case "Shift":
+      case "c":
+        return hold();
       case "ArrowDown":
         return softDrop(true);
       case "ArrowLeft":
@@ -135,6 +140,8 @@ export default class Tetris {
   tetrominoGen: IterableIterator<Tetromino<number, number>>;
   fallingTetromino: FallingTetromino;
   preview: Array<Tetromino<number, number>>;
+  holding: Tetromino<number, number> | null = null;
+  private canHold: boolean = true;
   private gameOver: boolean = false;
   private paused: boolean = false;
   private softDropping: boolean = false;
@@ -185,19 +192,22 @@ export default class Tetris {
       hardDrop: () => this.hardDrop(),
       pause: () => this.pause(),
       softDrop: (state: boolean) => this.toggleSoftDrop(state),
+      hold: () => this.hold(),
     });
   }
 
-  nextFallingTetromino(): FallingTetromino {
-    const tetromino = this.preview.shift()!;
-    this.preview.push(this.tetrominoGen.next().value);
-    log("Preview:", this.preview.map(t => t.name).join(" "));
+  nextFallingTetromino(piece?: Tetromino<number, number>): FallingTetromino {
+    const tetromino = piece || this.preview.shift()!;
     const x = Math.floor(
       this.grid.width / 2 - tetromino.currentState.width / 2,
     );
     // SRS says that the I piece spawns one row above the
     // playfield, while the others spawn 2 rows above.
     const y = tetromino.name === "I" ? -1 : -2;
+
+    if (!piece) {
+      this.preview.push(this.tetrominoGen.next().value);
+    }
     return { tetromino, pos: { x, y } };
   }
 
@@ -259,6 +269,7 @@ export default class Tetris {
       );
       this.grid = newGrid;
       this.fallingTetromino = this.nextFallingTetromino();
+      this.canHold = true;
       this.applyGravity();
     }
   }
@@ -291,6 +302,19 @@ export default class Tetris {
         return;
       }
     }
+  }
+
+  hold() {
+    if (!this.canHold) {
+      return;
+    }
+
+    const heldPiece = this.holding || undefined;
+    this.holding = this.fallingTetromino.tetromino;
+    this.fallingTetromino = this.nextFallingTetromino(heldPiece);
+    this.holding.currentState = this.holding.rotations[0];
+
+    this.canHold = false;
   }
 
   toggleSoftDrop(state: boolean) {
@@ -326,6 +350,7 @@ export default class Tetris {
       y: fallY - 1,
     });
     this.grid = newGrid;
+    this.canHold = true;
     this.fallingTetromino = this.nextFallingTetromino();
     this.applyGravity();
   }
