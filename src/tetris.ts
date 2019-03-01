@@ -1,7 +1,10 @@
 import * as M from "./matrix.js";
 import tetrominoes, { Tetromino } from "./tetrominoes.js";
 
-type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
+export type Grid<
+  W extends number = number,
+  H extends number = number
+> = M.Matrix<0 | object, W, H>;
 
 export interface FallingTetromino {
   tetromino: Tetromino;
@@ -106,16 +109,6 @@ const defaultOptions: DefaultOptions = {
 
 type UserOptions = Overwrite<TetrisOptions, Partial<DefaultOptions>>;
 
-const colorMap: Record<string, number> = {
-  cyan: 1,
-  purple: 2,
-  green: 3,
-  red: 4,
-  yellow: 5,
-  blue: 6,
-  orange: 7,
-};
-
 function* randomTetromino() {
   while (true) {
     const index = Math.floor(Math.random() * tetrominoes.length);
@@ -136,7 +129,7 @@ function rotateTetromino<W extends number, H extends number>(
 }
 
 export default class Tetris {
-  grid: NumMatrix<10, 20> = M.create(10, 20, () => 0);
+  grid: Grid = M.create<0, 10, 20>(10, 20, () => 0);
   tetrominoGen: IterableIterator<Tetromino>;
   fallingTetromino: FallingTetromino;
   preview: Tetromino[];
@@ -212,15 +205,11 @@ export default class Tetris {
   }
 
   /** Attempt to place the falling tetromino into the grid. */
-  tryMerge(tetromino: Tetromino, pos: M.Vector): [boolean, NumMatrix<10, 20>] {
-    const coloredShape = M.map(tetromino.currentState, value =>
-      value > 0 ? colorMap[this.fallingTetromino.tetromino.color] : 0,
-    );
-
+  tryMerge(tetromino: Tetromino, pos: M.Vector): [boolean, Grid] {
     const { matrix, merged } = M.merge(
       this.grid,
-      coloredShape,
-      1,
+      tetromino.currentState,
+      {},
       pos,
       (x1, x2, { y }) => x1 !== 0 && x2 !== 0 && y >= 0,
       (x1, x2) => x2 || x1,

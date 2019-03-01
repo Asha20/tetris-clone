@@ -1,6 +1,6 @@
 import * as M from "./matrix.js";
 
-type NumMatrix<W extends number, H extends number> = M.Matrix<number, W, H>;
+type NumMatrix<W extends number, H extends number> = M.Matrix<0 | object, W, H>;
 
 export interface Tetromino<
   W extends number = number,
@@ -14,7 +14,7 @@ export interface Tetromino<
   ];
   wallKicks: WallKicks;
   currentState: NumMatrix<W, H> | NumMatrix<H, W>;
-  color: string;
+  value: object;
   name: string;
 }
 
@@ -168,11 +168,11 @@ const fourWideKicks: WallKicks = [
 
 function tetromino<W extends number, H extends number>(
   name: string,
-  color: string,
   wallKicks: WallKicks,
   shape: number[][],
 ): Tetromino<W, H> {
-  const matrix1 = M.fromArray<number, W, H>(shape);
+  const value = { name };
+  const matrix1 = M.map(M.fromArray<number, W, H>(shape), x => x && value);
   const matrix2 = M.rotateClockwise(matrix1);
   const matrix3 = M.rotateClockwise(matrix2);
   const matrix4 = M.rotateClockwise(matrix3);
@@ -182,14 +182,14 @@ function tetromino<W extends number, H extends number>(
     rotations: [matrix1, matrix2, matrix3, matrix4],
     currentState: matrix1,
     wallKicks,
-    color,
+    value,
   };
 }
 
 // prettier-ignore
 const tetrominoes = [
   // I
-  tetromino("I", "cyan", fourWideKicks, [
+  tetromino("I", fourWideKicks, [
     [0, 0, 0, 0],
     [1, 1, 1, 1],
     [0, 0, 0, 0],
@@ -197,41 +197,41 @@ const tetrominoes = [
   ]),
 
   // O
-  tetromino("O", "yellow", null, [
+  tetromino("O", null, [
     [1, 1],
     [1, 1],
   ]),
 
   // T
-  tetromino("T", "purple", threeWideKicks, [
+  tetromino("T", threeWideKicks, [
     [0, 1, 0],
     [1, 1, 1],
     [0, 0, 0],
   ]),
 
   // S
-  tetromino("S", "green", threeWideKicks, [
+  tetromino("S", threeWideKicks, [
     [0, 1, 1],
     [1, 1, 0],
     [0, 0, 0],
   ]),
 
   // Z
-  tetromino("Z", "red", threeWideKicks, [
+  tetromino("Z", threeWideKicks, [
     [1, 1, 0],
     [0, 1, 1],
     [0, 0, 0],
   ]),
 
   // J
-  tetromino("J", "blue", threeWideKicks, [
+  tetromino("J", threeWideKicks, [
     [1, 0, 0],
     [1, 1, 1],
     [0, 0, 0],
   ]),
 
   // L
-  tetromino("L", "orange", threeWideKicks, [
+  tetromino("L", threeWideKicks, [
     [0, 0, 1],
     [1, 1, 1],
     [0, 0, 0],
