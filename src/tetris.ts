@@ -132,6 +132,7 @@ export default class Tetris {
   grid: Grid = M.create<0, 10, 20>(10, 20, () => 0);
   tetrominoGen: IterableIterator<Tetromino>;
   fallingTetromino: FallingTetromino;
+  ghost: FallingTetromino;
   preview: Tetromino[];
   holding: Tetromino | undefined = undefined;
   private canHold: boolean = true;
@@ -168,6 +169,7 @@ export default class Tetris {
       return opts.tetrominoGen.next().value;
     });
     this.fallingTetromino = this.nextFallingTetromino();
+    this.ghost = this.getGhost(this.fallingTetromino);
     this.applyGravity();
 
     this.gravity = opts.gravityDelay;
@@ -259,6 +261,9 @@ export default class Tetris {
     if (canMove) {
       this.fallingTetromino.pos.x += deltaX;
       this.fallingTetromino.pos.y += deltaY;
+      if (!deltaY) {
+        this.ghost = this.getGhost(this.fallingTetromino);
+      }
     }
     return canMove;
   }
@@ -280,10 +285,7 @@ export default class Tetris {
         this.fallingTetromino.tetromino,
         this.fallingTetromino.pos,
       );
-      this.grid = newGrid;
-      this.fallingTetromino = this.nextFallingTetromino();
-      this.canHold = true;
-      this.applyGravity();
+      this.advanceGrid(newGrid);
     }
   }
 
@@ -312,6 +314,7 @@ export default class Tetris {
         this.fallingTetromino.tetromino = rotated;
         this.fallingTetromino.pos.x += test.x;
         this.fallingTetromino.pos.y += test.y;
+        this.ghost = this.getGhost(this.fallingTetromino);
         return;
       }
     }
@@ -325,6 +328,7 @@ export default class Tetris {
     const heldPiece = this.holding;
     this.holding = this.fallingTetromino.tetromino;
     this.fallingTetromino = this.nextFallingTetromino(heldPiece);
+    this.ghost = this.getGhost(this.fallingTetromino);
     this.holding.currentState = this.holding.rotations[0];
 
     this.canHold = false;
@@ -345,6 +349,29 @@ export default class Tetris {
       : this.originalGravityDelay;
   }
 
+  getGhost(falling: FallingTetromino): FallingTetromino {
+    const { tetromino } = falling;
+    const { x: ghostX } = falling.pos;
+
+    let ghostY = falling.pos.y;
+    while (this.tryMerge(tetromino, { x: ghostX, y: ghostY + 1 })[0]) {
+      ghostY += 1;
+    }
+
+    return {
+      tetromino: falling.tetromino,
+      pos: { x: ghostX, y: ghostY },
+    };
+  }
+
+  advanceGrid(newGrid: Grid) {
+    this.grid = newGrid;
+    this.canHold = true;
+    this.fallingTetromino = this.nextFallingTetromino();
+    this.ghost = this.getGhost(this.fallingTetromino);
+    this.applyGravity();
+  }
+
   hardDrop() {
     if (this.gameOver || this.paused) {
       return;
@@ -353,19 +380,16 @@ export default class Tetris {
     const { tetromino } = this.fallingTetromino;
     const { x: fallX } = this.fallingTetromino.pos;
 
-    let fallY = this.fallingTetromino.pos.y + 1;
-    while (this.tryMerge(tetromino, { x: fallX, y: fallY })[0]) {
+    let fallY = this.fallingTetromino.pos.y;
+    while (this.tryMerge(tetromino, { x: fallX, y: fallY + 1 })[0]) {
       fallY += 1;
     }
 
     const [_, newGrid] = this.tryMerge(tetromino, {
       x: fallX,
-      y: fallY - 1,
+      y: fallY,
     });
-    this.grid = newGrid;
-    this.canHold = true;
-    this.fallingTetromino = this.nextFallingTetromino();
-    this.applyGravity();
+    this.advanceGrid(newGrid);
   }
 
   pause() {

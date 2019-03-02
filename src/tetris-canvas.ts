@@ -104,11 +104,15 @@ function drawPlayfield(
   pos: Vector,
   grid: Grid,
   fallingTetromino: FallingTetromino,
+  ghost: FallingTetromino,
   tileSize: number,
 ) {
   translate(ctx, pos.x, pos.y, () => {
     ctx.strokeRect(0, 0, tileSize * grid.width, tileSize * 20);
     drawFallingTetromino(ctx, colorMap, fallingTetromino, tileSize);
+    ctx.globalAlpha = 0.5;
+    drawFallingTetromino(ctx, colorMap, ghost, tileSize);
+    ctx.globalAlpha = 1;
     drawGrid(ctx, colorMap, grid, tileSize);
     drawGridLines(ctx, grid.width, grid.height, tileSize);
   });
@@ -181,7 +185,7 @@ export default function tetrisCanvas(
 
     gameCanvas.appendTo(parent);
     gameCanvas.render(({ ctx }) => {
-      const { grid, fallingTetromino, preview, holding } = tetris;
+      const { grid, fallingTetromino, ghost, preview, holding } = tetris;
 
       drawLeftSidebar(ctx, colorMap, leftSidebarPos, holding, tileSize);
       drawPlayfield(
@@ -190,6 +194,7 @@ export default function tetrisCanvas(
         playfieldPos,
         grid,
         fallingTetromino,
+        ghost,
         tileSize,
       );
       drawRightSidebar(ctx, colorMap, rightSidebarPos, preview, tileSize);
