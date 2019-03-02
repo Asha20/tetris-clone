@@ -204,6 +204,32 @@ export default class Tetris {
     return { tetromino, pos: { x, y } };
   }
 
+  clearLines(grid: Grid): Grid {
+    const rowsToSkip = grid.matrix.reduce((acc, row, i) => {
+      if (row.every(x => x !== 0)) {
+        acc.add(i);
+      }
+      return acc;
+    }, new Set<number>());
+
+    type GridMatrix = Array<Array<0 | object>>;
+
+    const emptyRow = () => Array.from({ length: grid.width }, (): 0 => 0);
+
+    const newRows = grid.matrix.reduceRight<GridMatrix>((acc, row, i) => {
+      if (!rowsToSkip.has(i)) {
+        acc.unshift(row);
+      }
+      return acc;
+    }, []);
+
+    while (newRows.length < grid.height) {
+      newRows.unshift(emptyRow());
+    }
+
+    return M.fromArray(newRows);
+  }
+
   /** Attempt to place the falling tetromino into the grid. */
   tryMerge(tetromino: Tetromino, pos: M.Vector): [boolean, Grid] {
     const { matrix, merged } = M.merge(
@@ -215,12 +241,13 @@ export default class Tetris {
       (x1, x2) => x2 || x1,
     );
 
-    return [merged, matrix];
+    const result = merged ? this.clearLines(matrix) : matrix;
+    return [merged, result];
   }
 
   moveTetromino(deltaX: number, deltaY: number) {
     if (this.gameOver || this.paused) {
-      return;
+      return false;
     }
 
     const fallingPos = this.fallingTetromino.pos;
