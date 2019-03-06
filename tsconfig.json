@@ -4,8 +4,6 @@
     "module": "es2015",
     "lib": ["dom", "es2015"],
     "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true
   }
 }

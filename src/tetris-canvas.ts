@@ -1,8 +1,8 @@
-import Tetris, { FallingTetromino, Grid } from "./tetris.js";
-import GameCanvas from "./GameCanvas.js";
-import { Tetromino } from "./tetrominoes.js";
-import { forEach, Vector } from "./matrix.js";
-import tetrominoes from "./tetrominoes.js";
+import Tetris, { FallingTetromino, Grid } from "./tetris";
+import GameCanvas from "./GameCanvas";
+import { Tetromino } from "./tetrominoes";
+import { forEach, Vector } from "./matrix";
+import tetrominoes from "./tetrominoes";
 
 type Context = CanvasRenderingContext2D;
 type ColorMap = Map<object, string>;

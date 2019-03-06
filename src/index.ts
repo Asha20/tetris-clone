@@ -1,5 +1,5 @@
-import Tetris from "./tetris.js";
-import tetrisCanvas from "./tetris-canvas.js";
+import Tetris from "./tetris";
+import tetrisCanvas from "./tetris-canvas";
 
 const game = new Tetris({
   gravityDelay: 200,

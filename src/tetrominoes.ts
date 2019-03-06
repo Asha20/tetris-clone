@@ -1,4 +1,4 @@
-import * as M from "./matrix.js";
+import * as M from "./matrix";
 
 type NumMatrix<W extends number, H extends number> = M.Matrix<0 | object, W, H>;
 

@@ -1,5 +1,5 @@
-import * as M from "./matrix.js";
-import tetrominoes, { Tetromino } from "./tetrominoes.js";
+import * as M from "./matrix";
+import tetrominoes, { Tetromino } from "./tetrominoes";
 
 export type Grid<
   W extends number = number,
