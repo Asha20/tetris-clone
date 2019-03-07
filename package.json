@@ -4,8 +4,8 @@
   "description": "Tetris implemented in TypeScript without any dependencies.",
   "main": "index.js",
   "scripts": {
-    "build": "webpack -p",
-    "watch": "webpack-dev-server --watch",
+    "build": "webpack --mode production",
+    "watch": "webpack-dev-server --mode development --watch",
     "dev": "tsc --watch"
   },
   "author": "Vukašin Stepanović <vukasinstepanovic@gmail.com> (https://gitlab.com/Asha20)",
@@ -16,6 +16,7 @@
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.3.3333",
+    "uglifyjs-webpack-plugin": "^2.1.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3",
     "webpack-dev-server": "^3.2.1"
