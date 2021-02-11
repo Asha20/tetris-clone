@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Tetris clone</title>
+    <meta
+      name="description"
+      content="A simple Tetris clone written purely in TypeScript, without any dependencies."
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <style>
+      html {
+        box-sizing: border-box;
+      }
+
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+
+      html,
+      body {
+        font-size: 20px;
+        line-height: 1.25;
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        display: flex;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      .controls {
+        padding: 2em;
+      }
+    </style>
+    <title>Document</title>
+  </head>
+  <body>
+    <main>
+      <section id="game-wrapper"></section>
+      <section class="controls">
+        <p>Controls:</p>
+        <ul>
+          <li><code>Shift</code> or <code>C</code> to hold.</li>
+          <li>Hold down arrow to soft drop.</li>
+          <li>Left and right arrows to move piece.</li>
+          <li>Up arrow or <code>X</code> to rotate piece clockwise.</li>
+          <li><code>Control</code> or <code>Z</code> to rotate piece counter-clockwise.</li>
+          <li><code>Space</code> to hard drop.</li>
+          <li><code>Escape</code> or <code>F1</code> to pause.</li>
+        </ul>
+      </section>
+    </main>
+    <script src="./bundle.js"></script>
+  </body>
+</html>
